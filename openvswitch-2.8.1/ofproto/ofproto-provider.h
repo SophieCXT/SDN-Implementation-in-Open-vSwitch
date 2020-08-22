@@ -252,6 +252,7 @@ struct oftable {
 #define EVICTION_CLIENT  (1 << 0)  /* Set to 1 if client enables eviction. */
 #define EVICTION_OPENFLOW (1 << 1) /* Set to 1 if OpenFlow enables eviction. */
     unsigned int eviction;
+    uint8_t eviction_algorithm;
 
     /* If zero, vacancy events are disabled.  If nonzero, this is the type of
        vacancy event that is enabled: either OFPTR_VACANCY_DOWN or

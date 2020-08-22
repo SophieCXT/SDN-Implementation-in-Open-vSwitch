@@ -123,6 +123,10 @@ static bool choose_rule_to_evict(struct oftable *table, struct rule **rulep)
     OVS_REQUIRES(ofproto_mutex);
 static uint64_t rule_eviction_priority(struct ofproto *ofproto, struct rule *)
     OVS_REQUIRES(ofproto_mutex);
+//Namitha: New function to support FIFO
+static uint64_t rule_eviction_priority_fifo(struct ofproto *ofproto, struct rule *)
+    OVS_REQUIRES(ofproto_mutex);
+//Namitha: Changed end here
 static void eviction_group_add_rule(struct rule *)
     OVS_REQUIRES(ofproto_mutex);
 static void eviction_group_remove_rule(struct rule *)
@@ -1759,8 +1763,13 @@ ofproto_run(struct ofproto *p)
                     if (!rule->eviction_group) {
                         eviction_group_add_rule(rule);
                     } else {
-                        heap_raw_change(&rule->evg_node,
+			if (table->eviction_algorithm == 1) {
+                        	heap_raw_change(&rule->evg_node,
+                                        rule_eviction_priority_fifo(p, rule));
+			} else {
+                        	heap_raw_change(&rule->evg_node,
                                         rule_eviction_priority(p, rule));
+			}
                     }
                 }
             }
@@ -8252,7 +8261,28 @@ pick_fallback_dpid(void)
     eth_addr_nicira_random(&ea);
     return eth_addr_to_uint64(ea);
 }
-
+
+//Namitha: Choose a rule for eviction based on FIFO Algorithm
+static bool
+choose_rule_to_evict_fifo(struct oftable *table, struct rule **rulep)
+    OVS_REQUIRES(ofproto_mutex)
+{
+
+    //1. Change the priority and rebuild the heap.
+    //   Default priority is based on LRU Approx.
+    HEAP_FOR_EACH (evg, size_node, &table->eviction_groups_by_size) {
+        struct rule *rule;
+
+        HEAP_FOR_EACH (rule, evg_node, &evg->rules) {
+            *rulep = rule;
+            return true;
+        }
+    }
+
+    //printf("Namitha: %s():%d() - Rule evicted = %s", __func__, __LINE__, *rule->created);
+    return false;
+}
+
 /* Table overflow policy. */
 
 /* Chooses and updates 'rulep' with a rule to evict from 'table'.  Sets 'rulep'
@@ -8268,6 +8298,12 @@ choose_rule_to_evict(struct oftable *table, struct rule **rulep)
     *rulep = NULL;
     if (!table->eviction) {
         return false;
+    }
+
+    // Namitha: Use FIFO eviction algorithm
+    if (table->eviction_algorithm == 1) {
+        bool retval = choose_rule_to_evict_fifo(table, rulep)
+        return retval;
     }
 
     /* In the common case, the outer and inner loops here will each be entered
@@ -8293,7 +8329,6 @@ choose_rule_to_evict(struct oftable *table, struct rule **rulep)
 
     return false;
 }
-
 /* Eviction groups. */
 
 /* Returns the priority to use for an eviction_group that contains 'n_rules'
@@ -8418,6 +8453,25 @@ eviction_group_find(struct oftable *table, uint32_t id)
     return evg;
 }
 
+static uint64_t
+rule_eviction_priority(struct ofproto *ofproto, struct rule *rule)
+    OVS_REQUIRES(ofproto_mutex)
+{
+
+    /* Flow will never expire if it does not have timeout value,
+     * then return 0 to make it unevictable.  */
+    if (!rule->hard_timeout && !rule->idle_timeout) {
+	return 0;
+    }
+
+    ovs_mutex_lock(&rule->mutex);
+    long long int created = rule->created;
+
+    ovs_mutex_unlock(&rule->mutex);
+
+    return (UINT64_MAX - created);
+}
+
 /* Returns an eviction priority for 'rule'.  The return value should be
  * interpreted so that higher priorities make a rule a more attractive
  * candidate for eviction. */
@@ -8493,12 +8547,16 @@ eviction_group_add_rule(struct rule *rule)
         evg = eviction_group_find(table, eviction_group_hash_rule(rule));
 
         rule->eviction_group = evg;
-        heap_insert(&evg->rules, &rule->evg_node,
+        if (table->eviction_algorithm == 1) {
+        	heap_insert(&evg->rules, &rule->evg_node,
+                    rule_eviction_priority_fifo(ofproto, rule));
+        } else { 
+        	heap_insert(&evg->rules, &rule->evg_node,
                     rule_eviction_priority(ofproto, rule));
+        }
         eviction_group_resized(table, evg);
     }
 }
-
 /* oftables. */
 
 /* Initializes 'table'. */
@@ -8509,6 +8567,7 @@ oftable_init(struct oftable *table)
     classifier_init(&table->cls, flow_segment_u64s);
     table->max_flows = UINT_MAX;
     table->n_flows = 0;
+    table->eviction_algorithm = 1; //Namitha: FIFO
     hmap_init(&table->eviction_groups_by_id);
     heap_init(&table->eviction_groups_by_size);
     atomic_init(&table->miss_config, OFPUTIL_TABLE_MISS_DEFAULT);
