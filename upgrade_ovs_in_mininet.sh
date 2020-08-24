@@ -11,10 +11,11 @@ cd openvswitch-2.8.1/
 #make clean
 
 # Install def ovs using package manager
-apt --force-yes --yes install openvswitch-switch
+#apt --force-yes --yes install openvswitch-switch
 
 #Remove old version ovs
-aptitude remove openvswitch-common openvswitch-datapath-dkms openvswitch-controller openvswitch-pki openvswitch-switch -y
+#aptitude remove openvswitch-common openvswitch-datapath-dkms openvswitch-controller openvswitch-pki openvswitch-switch -y
+#sudo dpkg -r --force-depends openvswitch-switch
 
 #Install new version ovs from source
 #wget http://openvswitch.org/releases/openvswitch-2.8.1.tar.gz

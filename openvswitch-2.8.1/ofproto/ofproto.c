@@ -8267,7 +8267,9 @@ static bool
 choose_rule_to_evict_fifo(struct oftable *table, struct rule **rulep)
     OVS_REQUIRES(ofproto_mutex)
 {
+    struct eviction_group *evg;
 
+    *rulep = NULL;
     //1. Change the priority and rebuild the heap.
     //   Default priority is based on LRU Approx.
     HEAP_FOR_EACH (evg, size_node, &table->eviction_groups_by_size) {
@@ -8275,11 +8277,12 @@ choose_rule_to_evict_fifo(struct oftable *table, struct rule **rulep)
 
         HEAP_FOR_EACH (rule, evg_node, &evg->rules) {
             *rulep = rule;
+    	    printf("\nNamitha: %s():%d() - Evicting ule created @ %lld\n", 
+			__func__, __LINE__, rule->created);
             return true;
         }
     }
 
-    //printf("Namitha: %s():%d() - Rule evicted = %s", __func__, __LINE__, *rule->created);
     return false;
 }
 
@@ -8302,7 +8305,7 @@ choose_rule_to_evict(struct oftable *table, struct rule **rulep)
 
     // Namitha: Use FIFO eviction algorithm
     if (table->eviction_algorithm == 1) {
-        bool retval = choose_rule_to_evict_fifo(table, rulep)
+        bool retval = choose_rule_to_evict_fifo(table, rulep);
         return retval;
     }
 
@@ -8454,7 +8457,7 @@ eviction_group_find(struct oftable *table, uint32_t id)
 }
 
 static uint64_t
-rule_eviction_priority(struct ofproto *ofproto, struct rule *rule)
+rule_eviction_priority_fifo(struct ofproto *ofproto, struct rule *rule)
     OVS_REQUIRES(ofproto_mutex)
 {
 
