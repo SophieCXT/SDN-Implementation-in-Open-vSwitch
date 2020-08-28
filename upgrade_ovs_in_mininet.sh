@@ -11,7 +11,7 @@ cd openvswitch-2.9.5/
 #make clean
 
 # Install def ovs using package manager
-apt --force-yes --yes install openvswitch-switch
+#apt --force-yes --yes install openvswitch-switch
 
 #Remove old version ovs
 #aptitude remove openvswitch-common openvswitch-datapath-dkms openvswitch-controller openvswitch-pki openvswitch-switch -y
@@ -34,6 +34,7 @@ depmod -a
 
 #Start new version ovs
 /etc/init.d/openvswitch-switch start
+/etc/init.d/openvswitch-switch restart
 
 #Clean ovs
 #rm -rf /tmp/openvswitch-2.3.0*
