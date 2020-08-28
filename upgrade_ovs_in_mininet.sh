@@ -6,16 +6,16 @@
 test $(id -u) -ne 0 && echo "This script must be run as root" && exit 0
 
 # Uninstall ovs installed from source
-cd openvswitch-2.8.1/
+cd openvswitch-2.9.5/
 #make uninstall
 #make clean
 
 # Install def ovs using package manager
-#apt --force-yes --yes install openvswitch-switch
+apt --force-yes --yes install openvswitch-switch
 
 #Remove old version ovs
 #aptitude remove openvswitch-common openvswitch-datapath-dkms openvswitch-controller openvswitch-pki openvswitch-switch -y
-#sudo dpkg -r --force-depends openvswitch-switch
+sudo dpkg -r --force-depends openvswitch-switch
 
 #Install new version ovs from source
 #wget http://openvswitch.org/releases/openvswitch-2.8.1.tar.gz
