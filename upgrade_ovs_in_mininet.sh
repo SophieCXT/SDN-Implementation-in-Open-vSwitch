@@ -6,7 +6,7 @@
 test $(id -u) -ne 0 && echo "This script must be run as root" && exit 0
 
 # Uninstall ovs installed from source
-cd openvswitch-2.9.5/
+cd openvswitch-2.14.0/
 #make uninstall
 #make clean
 
