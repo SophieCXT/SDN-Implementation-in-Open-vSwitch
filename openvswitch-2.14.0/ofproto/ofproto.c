@@ -361,6 +361,10 @@ ofproto_init(const struct shash *iface_hints)
     }
 
     ofproto_unixctl_init();
+
+	 /* Namitha: Changes begin here */
+	 srand(time(0));
+	 /* Namitha: Changes end here */
 }
 
 /* 'type' should be a normalized datapath type, as returned by
@@ -5149,6 +5153,21 @@ static enum ofperr
 add_flow_start(struct ofproto *ofproto, struct ofproto_flow_mod *ofm)
     OVS_REQUIRES(ofproto_mutex)
 {
+	 /* Namitha Q-LRU: Begin code changes here */
+	 if (ofproto->tables[0].eviction_algorithm == 3) { // q-LRU
+		 // 1. Perform coin flip (Generate num b/w 0 and 1)
+		 float coin_flip_result = (float) rand()/RAND_MAX;
+
+		 // 2. Get the outcome of the flip (to add or not to add)
+		 bool add_flow = (coin_flip_result <= 0.15)? true : false;
+		 // if the rand num is less than or equal to 0.15, set to true
+
+		 if (!add_flow) {
+			 return 0;
+		 }
+	 }
+	 /* Namitha: End changes here */
+	 
     struct rule *old_rule = NULL;
     struct rule *new_rule = ofm->temp_rule;
     const struct rule_actions *actions = rule_get_actions(new_rule);
@@ -9036,7 +9055,7 @@ oftable_init(struct oftable *table)
     classifier_init(&table->cls, flow_segment_u64s);
     table->max_flows = UINT_MAX;
     table->n_flows = 0;
-    table->eviction_algorithm = 1; //Namitha: FIFO
+    table->eviction_algorithm = 3; //Namitha: 0 = LRU, 1 = FIFO, 2 = q-LRU
     hmap_init(&table->eviction_groups_by_id);
     heap_init(&table->eviction_groups_by_size);
     atomic_init(&table->miss_config, OFPUTIL_TABLE_MISS_DEFAULT);
