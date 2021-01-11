@@ -5153,21 +5153,6 @@ static enum ofperr
 add_flow_start(struct ofproto *ofproto, struct ofproto_flow_mod *ofm)
     OVS_REQUIRES(ofproto_mutex)
 {
-	 /* Namitha Q-LRU: Begin code changes here */
-	 if (ofproto->tables[0].eviction_algorithm == 3) { // q-LRU
-		 // 1. Perform coin flip (Generate num b/w 0 and 1)
-		 float coin_flip_result = (float) rand()/RAND_MAX;
-
-		 // 2. Get the outcome of the flip (to add or not to add)
-		 bool add_flow = (coin_flip_result <= 0.15)? true : false;
-		 // if the rand num is less than or equal to 0.15, set to true
-
-		 if (!add_flow) {
-			 return 0;
-		 }
-	 }
-	 /* Namitha: End changes here */
-	 
     struct rule *old_rule = NULL;
     struct rule *new_rule = ofm->temp_rule;
     const struct rule_actions *actions = rule_get_actions(new_rule);
@@ -6214,6 +6199,23 @@ handle_flow_mod(struct ofconn *ofconn, const struct ofp_header *oh)
                                     u16_to_ofp(ofproto->max_ports),
                                     ofproto->n_tables);
     if (!error) {
+	/* Namitha Q-LRU: Begin code changes here */
+	if (ofproto->tables[0].eviction_algorithm == 3
+			    && fm.command == OFPFC_ADD) { // q-LRU
+	   // 1. Perform coin flip (Generate num b/w 0 and 1)
+	   float coin_flip_result = (float) rand()/RAND_MAX;
+
+	   // 2. Get the outcome of the flip (to add or not to add)
+	   bool add_flow = (coin_flip_result <= 0.15)? true : false;
+	   // if the rand num is less than or equal to 0.15, set to true
+
+	   if (!add_flow) {
+	      ofpbuf_uninit(&ofpacts);
+	      return 0;
+	   }
+	}
+	/* Namitha: End changes here */
+
         struct openflow_mod_requester req = { ofconn, oh };
         error = handle_flow_mod__(ofproto, &fm, &req);
         minimatch_destroy(&fm.match);
