@@ -6201,9 +6201,9 @@ handle_flow_mod(struct ofconn *ofconn, const struct ofp_header *oh)
     static bool use_coin_toss = false;
     static int flow_counter = 0;
 
-    if (flow_counter >= 5) {
-        use_coin_toss = true;
-    }
+    //if (flow_counter >= 5) {
+        //use_coin_toss = true;
+    //}
 
     if (!error) {
 	/* Namitha Q-LRU: Begin code changes here */
@@ -6216,10 +6216,14 @@ handle_flow_mod(struct ofconn *ofconn, const struct ofp_header *oh)
 	   bool add_flow = (coin_flip_result <= 0.15)? true : false;
 	   // if the rand num is less than or equal to 0.15, set to true
 		
-	   if (!use_coin_toss) {
-	      flow_counter += 1;
-              add_flow = true;
-	   }
+	   //if (!use_coin_toss) {
+	      //flow_counter += 1;
+              //add_flow = true;
+	   //}
+
+	   if (fm.priority == 0) {
+	      add_flow = true;
+           }
 
 	   if (!add_flow) {
 	      ofpbuf_uninit(&ofpacts);

@@ -442,6 +442,7 @@ usage(void)
            "  mod-table SWITCH MOD        modify flow table behavior\n"
            "      OF1.1/1.2 MOD: controller, continue, drop\n"
            "      OF1.4+ MOD: evict, noevict, vacancy:low,high, novacancy\n"
+           "  mod-eviction-policy SWITCH [Policy] set eviction policy\n"
            "  get-frags SWITCH            print fragment handling behavior\n"
            "  set-frags SWITCH FRAG_MODE  set fragment handling behavior\n"
            "      FRAG_MODE: normal, drop, reassemble, nx-match\n"
@@ -2674,10 +2675,11 @@ ofctl_mod_eviction_policy(struct ovs_cmdl_context *ctx)
 {
     uint32_t usable_versions;
     struct ofputil_table_mod tm;
-    const char *name;
+    //const char *name;
     struct vconn *vconn;
-    char *error;
+    //char *error;
     int i;
+    int new_algorithm = 0;
 
     // ctx->argv[1] = switch ID
     // ctx->argv[2] = protocol
@@ -2691,14 +2693,14 @@ ofctl_mod_eviction_policy(struct ovs_cmdl_context *ctx)
     }
 
     usable_versions = (1 << OFP14_VERSION) | (1u << OFP15_VERSION);
-    tm->table_id = OFPTT_ALL;
-    tm->miss = OFPUTIL_TABLE_MISS_DEFAULT;
-    tm->eviction = OFPUTIL_TABLE_EVICTION_DEFAULT;
-    tm->eviction_flags = UINT32_MAX;
-    tm->vacancy = OFPUTIL_TABLE_VACANCY_DEFAULT;
-    tm->table_vacancy.vacancy_down = 0;
-    tm->table_vacancy.vacancy_up = 0;
-    tm->table_vacancy.vacancy = 0;
+    tm.table_id = OFPTT_ALL;
+    tm.miss = OFPUTIL_TABLE_MISS_DEFAULT;
+    tm.eviction = OFPUTIL_TABLE_EVICTION_DEFAULT;
+    tm.eviction_flags = UINT32_MAX;
+    tm.vacancy = OFPUTIL_TABLE_VACANCY_DEFAULT;
+    tm.table_vacancy.vacancy_down = 0;
+    tm.table_vacancy.vacancy_up = 0;
+    tm.table_vacancy.vacancy = 0;
 
 
     uint32_t allowed_versions = get_allowed_ofp_versions();
@@ -2724,10 +2726,12 @@ ofctl_mod_eviction_policy(struct ovs_cmdl_context *ctx)
 		    for (i = 0; i < OFPTT_MAX; i++) {
 			    tm.table_id = i;
 			    fetch_table_desc(vconn, &tm, &td);
-			    tm->eviction_algorithm = new_algorithm;
+			    tm.eviction_algorithm = new_algorithm;
 			    transact_noreply(vconn,
 					    ofputil_encode_table_mod(&tm, protocol));
 		    }
+	    }
+    }
 	    
     vconn_close(vconn);
 }
@@ -5088,6 +5092,10 @@ static const struct ovs_cmdl_command all_commands[] = {
       3, 3, ofctl_mod_port, OVS_RW },
     { "mod-table", "switch mod",
       3, 3, ofctl_mod_table, OVS_RW },
+    /* NAMITHA Changes Begin her */
+    { "mod-eviction-policy", "switch",
+      2, 2, ofctl_mod_eviction_policy, OVS_RW },
+    /* NAMITHA Changes End her */
     { "get-frags", "switch",
       1, 1, ofctl_get_frags, OVS_RO },
     { "set-frags", "switch frag_mode",
