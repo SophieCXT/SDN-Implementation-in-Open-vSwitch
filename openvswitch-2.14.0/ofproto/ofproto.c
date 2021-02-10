@@ -6198,8 +6198,8 @@ handle_flow_mod(struct ofconn *ofconn, const struct ofp_header *oh)
                                     &ofproto->vl_mff_map, &ofpacts,
                                     u16_to_ofp(ofproto->max_ports),
                                     ofproto->n_tables);
-    static bool use_coin_toss = false;
-    static int flow_counter = 0;
+    //static bool use_coin_toss = false;
+    //static int flow_counter = 0;
 
     //if (flow_counter >= 5) {
         //use_coin_toss = true;
