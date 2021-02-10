@@ -312,7 +312,8 @@ OFP_ASSERT(sizeof(struct ofp11_instruction_experimenter) == 8);
 /* Configure/Modify behavior of a flow table */
 struct ofp11_table_mod {
     uint8_t table_id;       /* ID of the table, 0xFF indicates all tables */
-    uint8_t pad[3];         /* Pad to 32 bits */
+    uint8_t eviction_algorithm; /* Namitha Changes */
+    uint8_t pad[2];         /* Pad to 32 bits */
     ovs_be32 config;        /* Bitmap of OFPTC_* flags */
 };
 OFP_ASSERT(sizeof(struct ofp11_table_mod) == 8);

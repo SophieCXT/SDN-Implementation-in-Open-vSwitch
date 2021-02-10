@@ -2670,6 +2670,70 @@ change_table_name(struct vconn *vconn, uint8_t table_id, const char *new_name)
 }
 
 static void
+ofctl_mod_eviction_policy(struct ovs_cmdl_context *ctx)
+{
+    uint32_t usable_versions;
+    struct ofputil_table_mod tm;
+    const char *name;
+    struct vconn *vconn;
+    char *error;
+    int i;
+
+    // ctx->argv[1] = switch ID
+    // ctx->argv[2] = protocol
+
+    if (strcmp(ctx->argv[2], "FIFO") == 0) {
+	new_algorithm = 1;
+    } else if (strcmp(ctx->argv[2], "Q-LRU") == 0) {
+	new_algorithm = 3;
+    } else {
+	new_algorithm = 0;
+    }
+
+    usable_versions = (1 << OFP14_VERSION) | (1u << OFP15_VERSION);
+    tm->table_id = OFPTT_ALL;
+    tm->miss = OFPUTIL_TABLE_MISS_DEFAULT;
+    tm->eviction = OFPUTIL_TABLE_EVICTION_DEFAULT;
+    tm->eviction_flags = UINT32_MAX;
+    tm->vacancy = OFPUTIL_TABLE_VACANCY_DEFAULT;
+    tm->table_vacancy.vacancy_down = 0;
+    tm->table_vacancy.vacancy_up = 0;
+    tm->table_vacancy.vacancy = 0;
+
+
+    uint32_t allowed_versions = get_allowed_ofp_versions();
+    if (!(allowed_versions & usable_versions)) {
+        struct ds versions = DS_EMPTY_INITIALIZER;
+        ofputil_format_version_bitmap_names(&versions, usable_versions);
+        ovs_fatal(0, "table_mod '%s' requires one of the OpenFlow "
+                  "versions %s",
+                  ctx->argv[3], ds_cstr(&versions));
+    }
+    mask_allowed_ofp_versions(usable_versions);
+    enum ofputil_protocol protocol = open_vconn(ctx->argv[1], &vconn);
+
+    /* For OpenFlow 1.4+, ovs-ofctl mod-table should not affect
+     * table-config properties that the user didn't ask to change, so it is
+     * necessary to restore the current configuration of table-config
+     * parameters using OFPMP14_TABLE_DESC request. */
+    if (allowed_versions & ((1u << OFP14_VERSION) |
+			    (1u << OFP15_VERSION))) {
+	    struct ofputil_table_desc td;
+
+	    if (tm.table_id == OFPTT_ALL) {
+		    for (i = 0; i < OFPTT_MAX; i++) {
+			    tm.table_id = i;
+			    fetch_table_desc(vconn, &tm, &td);
+			    tm->eviction_algorithm = new_algorithm;
+			    transact_noreply(vconn,
+					    ofputil_encode_table_mod(&tm, protocol));
+		    }
+	    
+    vconn_close(vconn);
+}
+
+
+static void
 ofctl_mod_table(struct ovs_cmdl_context *ctx)
 {
     uint32_t usable_versions;

@@ -146,7 +146,8 @@ OFP_ASSERT(sizeof(struct ofp14_table_mod_prop_vacancy) == 8);
 
 struct ofp14_table_mod {
     uint8_t table_id;     /* ID of the table, OFPTT_ALL indicates all tables */
-    uint8_t pad[3];         /* Pad to 32 bits */
+    uint8_t eviction_algorithm; /* Namitha Changes */
+    uint8_t pad[2];         /* Pad to 32 bits */
     ovs_be32 config;        /* Bitmap of OFPTC_* flags */
     /* Followed by 0 or more OFPTMPT14_* properties. */
 };

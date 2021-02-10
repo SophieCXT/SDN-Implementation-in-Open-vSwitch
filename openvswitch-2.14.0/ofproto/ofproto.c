@@ -6198,6 +6198,13 @@ handle_flow_mod(struct ofconn *ofconn, const struct ofp_header *oh)
                                     &ofproto->vl_mff_map, &ofpacts,
                                     u16_to_ofp(ofproto->max_ports),
                                     ofproto->n_tables);
+    static bool use_coin_toss = false;
+    static int flow_counter = 0;
+
+    if (flow_counter >= 5) {
+        use_coin_toss = true;
+    }
+
     if (!error) {
 	/* Namitha Q-LRU: Begin code changes here */
 	if (ofproto->tables[0].eviction_algorithm == 3
@@ -6208,6 +6215,11 @@ handle_flow_mod(struct ofconn *ofconn, const struct ofp_header *oh)
 	   // 2. Get the outcome of the flip (to add or not to add)
 	   bool add_flow = (coin_flip_result <= 0.15)? true : false;
 	   // if the rand num is less than or equal to 0.15, set to true
+		
+	   if (!use_coin_toss) {
+	      flow_counter += 1;
+              add_flow = true;
+	   }
 
 	   if (!add_flow) {
 	      ofpbuf_uninit(&ofpacts);
@@ -7879,6 +7891,12 @@ table_mod__(struct oftable *oftable,
         atomic_store_relaxed(&oftable->miss_config, tm->miss);
     }
 
+    ovs_mutex_lock(&ofproto_mutex);
+    if (oftable->eviction_algorithm != tm->eviction_algorithm) {
+        oftable->eviction_algorithm = tm->eviction_algorithm;
+    }
+    ovs_mutex_unlock(&ofproto_mutex);
+
     unsigned int new_eviction = oftable->eviction;
     if (tm->eviction == OFPUTIL_TABLE_EVICTION_ON) {
         new_eviction |= EVICTION_OPENFLOW;
@@ -9057,7 +9075,7 @@ oftable_init(struct oftable *table)
     classifier_init(&table->cls, flow_segment_u64s);
     table->max_flows = UINT_MAX;
     table->n_flows = 0;
-    table->eviction_algorithm = 3; //Namitha: 0 = LRU, 1 = FIFO, 2 = q-LRU
+    table->eviction_algorithm = 3; //Namitha: 0 = LRU, 1 = FIFO, 3 = q-LRU
     hmap_init(&table->eviction_groups_by_id);
     heap_init(&table->eviction_groups_by_size);
     atomic_init(&table->miss_config, OFPUTIL_TABLE_MISS_DEFAULT);

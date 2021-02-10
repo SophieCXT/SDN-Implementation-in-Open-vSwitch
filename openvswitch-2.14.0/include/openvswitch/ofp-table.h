@@ -132,6 +132,7 @@ struct ofputil_table_mod {
     /* OpenFlow 1.4+ only.  For other versions, ignored on encoding, decoded to
      * OFPUTIL_TABLE_EVICTION_DEFAULT. */
     enum ofputil_table_eviction eviction;
+    uint8_t eviction_algorithm;
 
     /* OpenFlow 1.4+ only and optional even there; UINT32_MAX indicates
      * absence.  For other versions, ignored on encoding, decoded to

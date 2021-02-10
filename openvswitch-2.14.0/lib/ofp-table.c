@@ -1131,6 +1131,9 @@ ofputil_encode_table_mod(const struct ofputil_table_mod *tm,
         otm->table_id = tm->table_id;
         otm->config = ofputil_encode_table_config(tm->miss, tm->eviction,
                                                   tm->vacancy, ofp_version);
+        /* Namitha Changes Begin */
+        otm->eviction_algorithm = tm->eviction_algorithm;
+        /* Namitha Changes End */
         break;
     }
     case OFP14_VERSION:
@@ -1142,6 +1145,9 @@ ofputil_encode_table_mod(const struct ofputil_table_mod *tm,
         otm->table_id = tm->table_id;
         otm->config = ofputil_encode_table_config(tm->miss, tm->eviction,
                                                   tm->vacancy, ofp_version);
+        /* Namitha Changes Begin */
+        otm->eviction_algorithm = tm->eviction_algorithm;
+        /* Namitha Changes End */
 
         if (tm->eviction_flags != UINT32_MAX) {
             ofpprop_put_u32(b, OFPTMPT14_EVICTION, tm->eviction_flags);
