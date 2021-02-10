@@ -2684,17 +2684,25 @@ ofctl_mod_eviction_policy(struct ovs_cmdl_context *ctx)
     // ctx->argv[1] = switch ID
     // ctx->argv[2] = protocol
 
-    xasprintf("%s: Protocol received is (%s)", __func__, ctx->argv[2]);
+    FILE *fp;
+    fp = fopen("/tmp/test.txt", "a");
+    //fprintf(fp, "Hi there!\nNamitha test print");
+    char temp_string[32];
+    strcpy(temp_string, ctx->argv[2]);
+
+    fprintf(fp,"\n%s: Protocol received is (%s)", __func__, temp_string);
     if (strcmp(ctx->argv[2], "FIFO") == 0) {
 	new_algorithm = 1;
-        xasprintf("%s: Protocol matched FIFO:(%d)", __func__, new_algorithm);
+        fprintf(fp, "\n%s: Protocol matched FIFO:(%d)", __func__, new_algorithm);
     } else if (strcmp(ctx->argv[2], "Q-LRU") == 0) {
 	new_algorithm = 3;
-        xasprintf("%s: Protocol matched Q-LRU:(%d)", __func__, new_algorithm);
+        fprintf(fp, "\n%s: Protocol matched Q-LRU:(%d)", __func__, new_algorithm);
     } else {
 	new_algorithm = 0;
-        xasprintf("%s: Protocol matched default case LRU:(%d)", __func__, new_algorithm);
+        fprintf(fp, "\n%s: Protocol matched default case LRU:(%d)", __func__, new_algorithm);
     }
+    fclose(fp);
+
 
     usable_versions = (1 << OFP14_VERSION) | (1u << OFP15_VERSION);
     tm.table_id = OFPTT_ALL;

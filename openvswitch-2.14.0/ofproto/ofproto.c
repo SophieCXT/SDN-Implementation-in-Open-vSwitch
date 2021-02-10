@@ -7895,11 +7895,16 @@ table_mod__(struct oftable *oftable,
         atomic_store_relaxed(&oftable->miss_config, tm->miss);
     }
 
+    FILE *fp;
+    fp = fopen("/tmp/test.txt", "a");
     ovs_mutex_lock(&ofproto_mutex);
     if (oftable->eviction_algorithm != tm->eviction_algorithm) {
         oftable->eviction_algorithm = tm->eviction_algorithm;
+	fprintf(fp, "\n%s(): New Eviction Algorithm being set as: [%d]", 
+			 	__func__, oftable->eviction_algorithm);
     }
     ovs_mutex_unlock(&ofproto_mutex);
+    fclose(fp);
 
     unsigned int new_eviction = oftable->eviction;
     if (tm->eviction == OFPUTIL_TABLE_EVICTION_ON) {

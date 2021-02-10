@@ -1067,6 +1067,7 @@ ofputil_decode_table_mod(const struct ofp_header *oh,
         const struct ofp14_table_mod *otm = ofpbuf_pull(&b, sizeof *otm);
 
         pm->table_id = otm->table_id;
+        pm->eviction_algorithm = otm->eviction_algorithm;
         pm->miss = ofputil_decode_table_miss(otm->config, oh->version);
         pm->eviction = ofputil_decode_table_eviction(otm->config, oh->version);
         pm->vacancy = ofputil_decode_table_vacancy(otm->config, oh->version);
@@ -1131,9 +1132,15 @@ ofputil_encode_table_mod(const struct ofputil_table_mod *tm,
         otm->table_id = tm->table_id;
         otm->config = ofputil_encode_table_config(tm->miss, tm->eviction,
                                                   tm->vacancy, ofp_version);
-        /* Namitha Changes Begin */
-        otm->eviction_algorithm = tm->eviction_algorithm;
-        /* Namitha Changes End */
+	/* Namitha Changes Begin */
+	FILE *fp;
+	fp = fopen("/tmp/test.txt", "a");
+	otm->eviction_algorithm = tm->eviction_algorithm;
+	fprintf(fp, "\n%s():tm->eviction_algorithm:[%d], otm->eviction_algorithm:[%d]", 
+				__func__, tm->eviction_algorithm, otm->eviction_algorithm);
+	fclose(fp);
+	/* Namitha Changes End */
+
         break;
     }
     case OFP14_VERSION:
@@ -1145,9 +1152,6 @@ ofputil_encode_table_mod(const struct ofputil_table_mod *tm,
         otm->table_id = tm->table_id;
         otm->config = ofputil_encode_table_config(tm->miss, tm->eviction,
                                                   tm->vacancy, ofp_version);
-        /* Namitha Changes Begin */
-        otm->eviction_algorithm = tm->eviction_algorithm;
-        /* Namitha Changes End */
 
         if (tm->eviction_flags != UINT32_MAX) {
             ofpprop_put_u32(b, OFPTMPT14_EVICTION, tm->eviction_flags);
@@ -1159,6 +1163,15 @@ ofputil_encode_table_mod(const struct ofputil_table_mod *tm,
             otv->vacancy_down = tm->table_vacancy.vacancy_down;
             otv->vacancy_up = tm->table_vacancy.vacancy_up;
         }
+        /* Namitha Changes Begin */
+	//FILE *fp;
+	//fp = fopen("/tmp/test.txt", "a");
+	otm->eviction_algorithm = tm->eviction_algorithm;
+	//fprintf(fp, "\n%s():tm->eviction_algorithm:[%d], otm->eviction_algorithm:[%d]", 
+				//__func__, tm->eviction_algorithm, otm->eviction_algorithm);
+	//fclose(fp);
+	/* Namitha Changes End */
+
         break;
     }
     default:
