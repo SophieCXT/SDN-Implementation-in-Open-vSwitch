@@ -49,7 +49,7 @@ git clone https://github.com/SophieCXT/Configurable-Rule-Replacement-Policies-in
 sudo ./upgrade_ovs_in_mininet.sh
 ```
 
-Then, please go to [Attack Resilience of Cache Replacement Policies: Code and Data for Experiments in Mininet](https://github.com/SophieCXT/Attack-Resilience-of-Cache-Replacement-Policies-Code-and-Data-for-Experiments-in-Mininet-) for further Experiment Procedure.
+Then, please go to [Attack Resilience of Cache Replacement Policies: Code and Data for Experiments in Mininet](https://github.com/SophieCXT/Code-and-Data-for-Experiments-in-Mininet-) for further Experiment Procedure.
  
 Friendly method/references:
 
